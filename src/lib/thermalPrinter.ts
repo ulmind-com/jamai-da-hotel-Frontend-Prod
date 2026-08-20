@@ -231,15 +231,25 @@ export type ReceiptData = {
 
 const money = (n: number) => (n || 0).toFixed(2);
 
+// Dropping non-ASCII can leave gaps and orphaned punctuation behind (an address
+// with a Bengali street name, say). Tidy those up so the line still reads well.
+const tidy = (value = "") =>
+  toAscii(value)
+    .replace(/\s+/g, " ")
+    .replace(/\s*,\s*(?=,)/g, "")
+    .replace(/^[\s,.-]+|[\s,.-]+$/g, "")
+    .trim();
+
 export const buildReceipt = (data: ReceiptData): Uint8Array => {
   const p = new EscPos();
 
   p.init().align("center").bold(true).size(1);
-  p.line(data.restaurantName);
+  p.line(tidy(data.restaurantName));
   p.size(0).bold(false);
-  if (data.address) p.line(data.address);
-  if (data.phone) p.line("Ph: " + data.phone);
-  if (data.gstIn) p.line("GSTIN: " + data.gstIn);
+  const address = tidy(data.address);
+  if (address) p.line(address);
+  if (data.phone) p.line("Ph: " + tidy(data.phone));
+  if (data.gstIn) p.line("GSTIN: " + tidy(data.gstIn));
 
   p.align("left").divider();
   p.line("Bill : " + data.billNumber);
