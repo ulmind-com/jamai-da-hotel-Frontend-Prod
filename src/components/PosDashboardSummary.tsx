@@ -97,7 +97,7 @@ const PosDashboardSummary = () => {
           ) : (
             <div className="max-h-72 overflow-y-auto">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card"><tr className="border-b border-border text-left text-muted-foreground"><th className="pb-2">Bill</th><th className="pb-2">Table</th><th className="pb-2">Time</th><th className="pb-2">Pay</th><th className="pb-2">By</th><th className="pb-2 text-right">Amt</th></tr></thead>
+                <thead className="sticky top-0 bg-card"><tr className="border-b border-border text-left text-muted-foreground"><th className="pb-2">Bill</th><th className="pb-2">Customer</th><th className="pb-2">Time</th><th className="pb-2">Pay</th><th className="pb-2">By</th><th className="pb-2 text-right">Amt</th></tr></thead>
                 <tbody>
                   {bills.map((b, i) => (
                     <tr key={b.ref + i} className="border-b border-border/50">

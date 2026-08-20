@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, UtensilsCrossed, Layers, ClipboardList, BarChart3,
   DollarSign, ShoppingBag, TrendingUp, Package, Plus, Menu, X, Settings, Tag, Users,
-  PieChart as PieChartIcon, MessageSquare, Printer, Map as MapIcon, Film, Grid3x3, ChefHat, Wallet,
+  PieChart as PieChartIcon, MessageSquare, Printer, Map as MapIcon, Film,
 } from "lucide-react";
 import AdminMenuTable from "@/components/AdminMenuTable";
 import CategoryManager from "@/components/CategoryManager";
@@ -24,25 +24,18 @@ import AdminReviews from "@/components/AdminReviews";
 import AdminChat from "@/components/AdminChat";
 import HeroVideoManager from "@/components/HeroVideoManager";
 import AdminMapAnalytics from "@/components/AdminMapAnalytics";
-import TableManagement from "@/components/TableManagement";
-import KotTerminal from "@/components/KotTerminal";
-import PosBilling from "@/components/PosBilling";
-import PosSettlement from "@/components/PosSettlement";
+import SimplePos from "@/components/SimplePos";
 import PosReports from "@/components/PosReports";
 import PosDashboardSummary from "@/components/PosDashboardSummary";
-import PendingReminders from "@/components/PendingReminders";
 import AdminVlogs from "@/components/AdminVlogs";
 
-type AdminTab = "dashboard" | "menu" | "categories" | "orders" | "analytics" | "map" | "coupons" | "settings" | "users" | "reviews" | "chat" | "videos" | "billing" | "vlogs" | "tables" | "kot" | "settlement" | "reports";
+type AdminTab = "dashboard" | "menu" | "categories" | "orders" | "analytics" | "map" | "coupons" | "settings" | "users" | "reviews" | "chat" | "videos" | "billing" | "vlogs" | "reports";
 
-const VALID_TABS: AdminTab[] = ["dashboard", "menu", "categories", "orders", "analytics", "map", "coupons", "settings", "users", "reviews", "chat", "videos", "billing", "vlogs", "tables", "kot", "settlement", "reports"];
+const VALID_TABS: AdminTab[] = ["dashboard", "menu", "categories", "orders", "analytics", "map", "coupons", "settings", "users", "reviews", "chat", "videos", "billing", "vlogs", "reports"];
 
 const sidebarLinks: { key: AdminTab; label: string; icon: any }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "billing", label: "POS Billing", icon: Printer },
-  { key: "tables", label: "Tables", icon: Grid3x3 },
-  { key: "kot", label: "KOT", icon: ChefHat },
-  { key: "settlement", label: "Settlement", icon: Wallet },
   { key: "reports", label: "Reports", icon: BarChart3 },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "map", label: "Map Analytics", icon: MapIcon },
@@ -62,12 +55,12 @@ const sidebarLinks: { key: AdminTab; label: string; icon: any }[] = [
 
 // Tabs only an Admin may open (Managers get everything else).
 const ADMIN_ONLY_TABS: AdminTab[] = ["users"];
-// A Waiter is a KOT-only staff member.
-const WAITER_TABS: AdminTab[] = ["kot"];
+// A Waiter is billing-only staff.
+const WAITER_TABS: AdminTab[] = ["billing"];
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
-  const { isAdmin, isManager, isWaiter } = useAuthStore();
+  const { isAdmin, isWaiter } = useAuthStore();
   const waiter = isWaiter();
   const visibleLinks = sidebarLinks.filter((l) =>
     waiter ? WAITER_TABS.includes(l.key) : isAdmin() || !ADMIN_ONLY_TABS.includes(l.key)
@@ -81,9 +74,9 @@ const AdminDashboard = () => {
   const handleIncomingOrderRef = useRef<(order: any) => void>(() => {});
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get("tab") as AdminTab | null;
-  // Waiters are locked to the KOT terminal.
+  // Waiters are locked to the billing terminal.
   const activeTab: AdminTab = waiter
-    ? "kot"
+    ? "billing"
     : tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : "dashboard";
 
   // Fetch admin chats to calculate unread badge
@@ -285,22 +278,14 @@ const AdminDashboard = () => {
         return <RestaurantSettings />;
       case "orders":
         return <AdminOrders />;
-      case "reviews":
-        return <AdminReviews />;
       case "chat":
         return <AdminChat />;
       case "videos":
         return <HeroVideoManager />;
       case "billing":
-        return <PosBilling />;
-      case "settlement":
-        return <PosSettlement />;
+        return <SimplePos />;
       case "reports":
         return <PosReports />;
-      case "tables":
-        return <TableManagement />;
-      case "kot":
-        return <KotTerminal />;
       case "vlogs":
         return <AdminVlogs />;
       default:
@@ -310,9 +295,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Periodic reminders for unfinished POS work (Admin/Manager) */}
-      {(isAdmin() || isManager()) && <PendingReminders />}
-
       {/* Mobile sidebar toggle */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}

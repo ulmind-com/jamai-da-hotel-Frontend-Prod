@@ -168,11 +168,11 @@ const PosReports = () => {
 
           {/* Bills table */}
           <div className="rounded-2xl border border-border bg-card p-4">
-            <h3 className="mb-3 font-bold text-foreground">Settled Bills ({data.offline.bills.length})</h3>
-            {data.offline.bills.length === 0 ? <p className="text-sm text-muted-foreground">No settled bills in this range.</p> : (
+            <h3 className="mb-3 font-bold text-foreground">Bills ({data.offline.bills.length})</h3>
+            {data.offline.bills.length === 0 ? <p className="text-sm text-muted-foreground">No bills in this range.</p> : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="pb-1">Bill</th><th className="pb-1">Table</th><th className="pb-1">Payment</th><th className="pb-1">Settled by</th><th className="pb-1 text-right">Amount</th></tr></thead>
+                  <thead><tr className="border-b border-border text-left text-muted-foreground"><th className="pb-1">Bill</th><th className="pb-1">Customer</th><th className="pb-1">Payment</th><th className="pb-1">Billed by</th><th className="pb-1 text-right">Amount</th></tr></thead>
                   <tbody>{data.offline.bills.map((b) => (
                     <tr key={b.billNumber} className="border-b border-border/50">
                       <td className="py-1.5 font-medium">{b.billNumber}</td><td className="py-1.5">{b.tableName}</td>
