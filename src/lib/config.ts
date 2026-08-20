@@ -5,4 +5,4 @@
 //
 // The fallback below is only used when VITE_API_URL is not set.
 export const API_URL: string =
-  import.meta.env.VITE_API_URL || "https://food-delivery-backend-173b.onrender.com";
+  import.meta.env.VITE_API_URL || "https://jamai-da-hotel-backend-prod.onrender.com";
