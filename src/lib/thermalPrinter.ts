@@ -17,6 +17,7 @@ const PRINTER_SERVICES: { service: string; characteristics: string[] }[] = [
 
 const ALL_SERVICES = PRINTER_SERVICES.map((p) => p.service);
 const DEVICE_NAME_KEY = "pos.printer.name";
+const DEVICE_ID_KEY = "pos.printer.id";
 
 let device: any = null;
 let characteristic: any = null;
@@ -86,7 +87,42 @@ export const connectPrinter = async (): Promise<string> => {
 
   const name = device.name || "Printer";
   localStorage.setItem(DEVICE_NAME_KEY, name);
+  localStorage.setItem(DEVICE_ID_KEY, device.id);
   return name;
+};
+
+// Reconnect to the printer this browser already has permission for, with no
+// picker and no click. Chrome only exposes getDevices() in newer builds, and a
+// printer that is off or out of range simply won't connect — either way we fail
+// quietly and leave the manual "Connect Printer" button to do the job.
+export const tryAutoReconnect = async (): Promise<string | null> => {
+  if (!isBluetoothSupported()) return null;
+  if (isPrinterConnected()) return device?.name || "Printer";
+
+  const savedId = localStorage.getItem(DEVICE_ID_KEY);
+  if (!savedId) return null;
+
+  try {
+    const bluetooth = (navigator as any).bluetooth;
+    if (typeof bluetooth.getDevices !== "function") return null;
+
+    const known = await bluetooth.getDevices();
+    const match = known.find((d: any) => d.id === savedId);
+    if (!match) return null;
+
+    device = match;
+    device.addEventListener("gattserverdisconnected", () => { characteristic = null; });
+
+    const server = await device.gatt.connect();
+    characteristic = await resolveCharacteristic(server);
+    if (!characteristic) { device = null; return null; }
+
+    return device.name || localStorage.getItem(DEVICE_NAME_KEY) || "Printer";
+  } catch {
+    device = null;
+    characteristic = null;
+    return null;
+  }
 };
 
 export const disconnectPrinter = () => {
@@ -94,6 +130,7 @@ export const disconnectPrinter = () => {
   device = null;
   characteristic = null;
   localStorage.removeItem(DEVICE_NAME_KEY);
+  localStorage.removeItem(DEVICE_ID_KEY);
 };
 
 // Re-open the link to the printer we already paired with this session.

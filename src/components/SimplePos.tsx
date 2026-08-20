@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { menuApi, adminApi, restaurantApi } from "@/api/axios";
 import { useInfiniteList } from "@/hooks/useInfiniteList";
@@ -11,7 +11,7 @@ import {
 import { toast } from "sonner";
 import {
   connectPrinter, disconnectPrinter, isPrinterConnected, isBluetoothSupported,
-  getSavedPrinterName, printReceipt, type ReceiptData,
+  getSavedPrinterName, printReceipt, tryAutoReconnect, type ReceiptData,
 } from "@/lib/thermalPrinter";
 
 interface Product {
@@ -51,6 +51,17 @@ export default function SimplePos() {
   const [printerName, setPrinterName] = useState(getSavedPrinterName());
   const [printerReady, setPrinterReady] = useState(isPrinterConnected());
   const [connecting, setConnecting] = useState(false);
+
+  // Pick the paired printer back up on load, so a refresh doesn't cost a click.
+  useEffect(() => {
+    let cancelled = false;
+    tryAutoReconnect().then((name) => {
+      if (cancelled || !name) return;
+      setPrinterName(name);
+      setPrinterReady(true);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const { data: menuData = [], isLoading } = useQuery({
     queryKey: ["admin-pos-menu"],
