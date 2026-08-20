@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 223 25% 27%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 223 25% 27%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 223 25% 27%;
+
+    --primary: 28 97% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 36 100% 95%;
+    --secondary-foreground: 223 25% 27%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 36 100% 95%;
+    --accent-foreground: 223 25% 27%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 28 97% 54%;
+
+    --radius: 0.75rem;
+
+    /* Custom tokens */
+    --swiggy-orange: 28 97% 54%;
+    --swiggy-orange-light: 36 100% 95%;
+    --swiggy-slate: 223 25% 27%;
+    --swiggy-gray: 220 9% 46%;
+    --swiggy-bg: 30 20% 98%;
+    --swiggy-success: 142 71% 45%;
+    --swiggy-danger: 0 84% 50%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 28 97% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 36 100% 95%;
+    --sidebar-accent-foreground: 223 25% 27%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 28 97% 54%;
+  }
+
+  .dark {
+    --background: 224 30% 8%;
+    --foreground: 210 40% 95%;
+
+    --card: 224 25% 12%;
+    --card-foreground: 210 40% 95%;
+
+    --popover: 224 25% 12%;
+    --popover-foreground: 210 40% 95%;
+
+    --primary: 28 97% 54%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 224 20% 18%;
+    --secondary-foreground: 210 40% 95%;
+
+    --muted: 224 20% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 224 20% 18%;
+    --accent-foreground: 210 40% 95%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 95%;
+
+    --border: 224 20% 18%;
+    --input: 224 20% 18%;
+    --ring: 28 97% 54%;
+
+    --sidebar-background: 224 30% 8%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 28 97% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 20% 18%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 224 20% 18%;
+    --sidebar-ring: 28 97% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-500;
+  }
+}
+
+@layer utilities {
+  .shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .glass {
+    backdrop-filter: blur(16px) saturate(180%);
+    background: hsl(var(--background) / 0.7);
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Phone Input Styling */
+  .phone-input-custom .PhoneInputCountry {
+    @apply mr-3 flex items-center;
+  }
+
+  .phone-input-custom .PhoneInputCountryIcon {
+    @apply h-5 w-6 rounded-sm shadow-sm;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelectArrow {
+    @apply ml-1 opacity-50;
+  }
+
+  .phone-input-custom .PhoneInputInput {
+    @apply flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelect {
+    @apply absolute inset-0 z-10 cursor-pointer opacity-0;
+  }
+}
+
+/* --- POS Thermal Receipt Print Rules --- */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible !important;
+  }
+
+  #printable-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 80mm !important;
+    /* Force exact 80mm width */
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 2mm !important;
+    /* Slight padding from thermal edges */
+    color: black !important;
+  }
+
+  @page {
+    margin: 0 !important;
+    size: 80mm auto;
+    /* Hardware hint for 3-inch POS rolls */
+  }
+}
