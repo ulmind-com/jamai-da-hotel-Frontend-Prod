@@ -6,7 +6,7 @@ import LoadMore from "@/components/LoadMore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, Minus, Trash2, Printer, Receipt, ChefHat,
-  Percent, Tag, Bluetooth, BluetoothConnected, Check,
+  Percent, Tag, Bluetooth, BluetoothConnected, Check, Package, Utensils,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,6 +24,7 @@ interface Product {
   cgst: number;
   sgst: number;
   igst: number;
+  packagingCharge?: number;
 }
 
 interface CartItem extends Product {
@@ -42,6 +43,8 @@ export default function SimplePos() {
   const [customerName, setCustomerName] = useState("");
   const [customerMobile, setCustomerMobile] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
+  // Dine-in customers need no boxes, so packaging only applies to parcels.
+  const [isParcel, setIsParcel] = useState(false);
   const [discountType, setDiscountType] = useState<"FLAT" | "PERCENTAGE">("FLAT");
   const [discountValue, setDiscountValue] = useState("");
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
@@ -129,14 +132,20 @@ export default function SimplePos() {
     [cart]
   );
 
+  // Per piece, GST-free, and only when the order is going out as a parcel.
+  const packagingTotal = useMemo(() => {
+    if (!isParcel) return 0;
+    return cart.reduce((sum, i) => sum + (i.packagingCharge || 0) * i.cartQuantity, 0);
+  }, [cart, isParcel]);
+
   const discountAmount = useMemo(() => {
     const val = parseFloat(discountValue) || 0;
     if (val <= 0) return 0;
-    const base = subtotal + taxTotal;
+    const base = subtotal + taxTotal + packagingTotal;
     return discountType === "FLAT" ? Math.min(val, base) : Math.min((base * val) / 100, base);
-  }, [subtotal, taxTotal, discountType, discountValue]);
+  }, [subtotal, taxTotal, packagingTotal, discountType, discountValue]);
 
-  const grandTotal = Math.ceil(subtotal + taxTotal - discountAmount);
+  const grandTotal = Math.ceil(subtotal + taxTotal + packagingTotal - discountAmount);
   const itemCount = cart.reduce((sum, i) => sum + i.cartQuantity, 0);
 
   // ── Printer ───────────────────────────────────────────────────────────────
@@ -212,6 +221,7 @@ export default function SimplePos() {
       <table>
         <tr><td>Subtotal</td><td class="a">${bill.subtotal.toFixed(2)}</td></tr>
         ${bill.taxAmount > 0 ? `<tr><td>GST</td><td class="a">${bill.taxAmount.toFixed(2)}</td></tr>` : ""}
+        ${bill.packagingAmount > 0 ? `<tr><td>Packaging</td><td class="a">${bill.packagingAmount.toFixed(2)}</td></tr>` : ""}
         ${bill.discountAmount > 0 ? `<tr><td>Discount${bill.discountLabel ? ` (${bill.discountLabel})` : ""}</td><td class="a">-${bill.discountAmount.toFixed(2)}</td></tr>` : ""}
         <tr class="grand"><td>TOTAL</td><td class="a">Rs.${bill.total.toFixed(2)}</td></tr>
       </table>
@@ -247,6 +257,7 @@ export default function SimplePos() {
         })),
         subtotal: order.totalAmount ?? subtotal,
         taxAmount: order.taxAmount ?? taxTotal,
+        packagingAmount: order.packagingTotal ?? packagingTotal,
         discountAmount: order.discountApplied ?? 0,
         discountLabel:
           order.discountType === "PERCENTAGE" ? `${order.discountValue}%` : undefined,
@@ -263,6 +274,7 @@ export default function SimplePos() {
       setCustomerName("");
       setCustomerMobile("");
       setPaymentMethod("CASH");
+      setIsParcel(false);
       setDiscountValue("");
       setIsMobileCartOpen(false);
       queryClient.invalidateQueries({ queryKey: ["admin-pos-orders"] });
@@ -281,6 +293,7 @@ export default function SimplePos() {
       paymentMethod,
       discountType: parseFloat(discountValue) > 0 ? discountType : "NONE",
       discountValue: parseFloat(discountValue) || 0,
+      applyPackaging: isParcel,
       items: cart.map((i) => ({ product: i._id, variant: "Standard", quantity: i.cartQuantity })),
     } as any);
   };
@@ -492,6 +505,26 @@ export default function SimplePos() {
             </div>
 
             <div className="space-y-3 border-t border-border bg-muted/10 p-4">
+              {/* One tap decides whether packaging gets charged. */}
+              <div className="flex gap-2 rounded-xl bg-muted p-1">
+                <button
+                  onClick={() => setIsParcel(false)}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
+                    !isParcel ? "bg-background text-foreground shadow" : "text-muted-foreground"
+                  }`}
+                >
+                  <Utensils className="h-3.5 w-3.5" /> Dine-in
+                </button>
+                <button
+                  onClick={() => setIsParcel(true)}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
+                    isParcel ? "bg-background text-foreground shadow" : "text-muted-foreground"
+                  }`}
+                >
+                  <Package className="h-3.5 w-3.5" /> Parcel
+                </button>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
@@ -575,6 +608,12 @@ export default function SimplePos() {
                   <span>GST</span>
                   <span>₹{taxTotal.toFixed(2)}</span>
                 </div>
+                {packagingTotal > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Packaging</span>
+                    <span>₹{packagingTotal.toFixed(2)}</span>
+                  </div>
+                )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between font-medium text-green-600">
                     <span>Discount</span>
@@ -678,6 +717,12 @@ export default function SimplePos() {
                   <span>GST</span>
                   <span>{lastBill.taxAmount.toFixed(2)}</span>
                 </div>
+                {lastBill.packagingAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Packaging</span>
+                    <span>{lastBill.packagingAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 {lastBill.discountAmount > 0 && (
                   <div className="flex justify-between text-green-700">
                     <span>Discount</span>
@@ -806,6 +851,7 @@ function PosHistory({
     })),
     subtotal: order.totalAmount || 0,
     taxAmount: order.taxAmount || 0,
+    packagingAmount: order.packagingTotal || 0,
     discountAmount: order.discountApplied || 0,
     discountLabel: order.discountType === "PERCENTAGE" ? `${order.discountValue}%` : undefined,
     total: order.finalAmount || 0,

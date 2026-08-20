@@ -224,6 +224,7 @@ export type ReceiptData = {
   items: ReceiptItem[];
   subtotal: number;
   taxAmount: number;
+  packagingAmount: number;
   discountAmount: number;
   discountLabel?: string;
   total: number;
@@ -269,6 +270,7 @@ export const buildReceipt = (data: ReceiptData): Uint8Array => {
 
   p.row("Subtotal", money(data.subtotal));
   if (data.taxAmount > 0) p.row("GST", money(data.taxAmount));
+  if (data.packagingAmount > 0) p.row("Packaging", money(data.packagingAmount));
   if (data.discountAmount > 0) p.row(`Discount${data.discountLabel ? ` (${data.discountLabel})` : ""}`, "-" + money(data.discountAmount));
   p.divider("=");
   p.bold(true).size(1);

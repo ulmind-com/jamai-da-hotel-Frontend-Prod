@@ -135,6 +135,11 @@ const AdminMenuTable = () => {
                   <span className="text-sm font-bold text-foreground">
                     ₹{item.price || item.variants?.[0]?.price || 0}
                   </span>
+                  {item.packagingCharge > 0 && (
+                    <span className="mt-0.5 text-[10px] font-medium text-muted-foreground">
+                      +₹{item.packagingCharge} packing
+                    </span>
+                  )}
                   {item.discountPercentage > 0 && (
                     <div className="mt-1 flex flex-col items-start gap-0.5">
                       <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">

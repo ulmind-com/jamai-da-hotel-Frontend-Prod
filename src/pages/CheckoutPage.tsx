@@ -16,7 +16,7 @@ type PaymentMethod = "ONLINE" | "COD";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { items, totalPrice, discountAmount, finalPrice, deliveryFee, tax, taxBreakdown, appliedCoupon, clearCart, incrementItem, decrementItem, isLoading: isCartLoading } = useCartStore();
+  const { items, totalPrice, discountAmount, finalPrice, deliveryFee, tax, taxBreakdown, packagingTotal, appliedCoupon, clearCart, incrementItem, decrementItem, isLoading: isCartLoading } = useCartStore();
   const { user } = useAuthStore();
   const { restaurant, setRestaurant, setLoading } = useRestaurantStore();
   const { selectedAddress: storedAddress } = useLocationStore();
@@ -460,6 +460,12 @@ const CheckoutPage = () => {
                   <span>Delivery fee</span>
                   <span>₹{deliveryFee.toFixed(2)}</span>
                 </div>
+                {packagingTotal > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Packaging charge</span>
+                    <span>₹{packagingTotal.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1 text-muted-foreground">
                   <div className="flex justify-between">
                     <span>GST (Total)</span>

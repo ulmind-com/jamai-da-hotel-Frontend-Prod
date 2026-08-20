@@ -27,6 +27,7 @@ interface ServerCart {
   finalPrice: number;
   deliveryFee: number;
   tax: number;
+  packagingTotal: number;
   appliedCoupon: AppliedCoupon | null;
 }
 
@@ -39,6 +40,7 @@ interface CartState {
   finalPrice: number;
   deliveryFee: number;
   tax: number;
+  packagingTotal: number;
   taxBreakdown?: {
     cgstTotal: number;
     sgstTotal: number;
@@ -66,6 +68,7 @@ const emptyCart: Omit<CartState, "isOpen" | "isLoading" | "fetchCart" | "addItem
   finalPrice: 0,
   deliveryFee: 0,
   tax: 0,
+  packagingTotal: 0,
   taxBreakdown: { cgstTotal: 0, sgstTotal: 0, igstTotal: 0 },
   appliedCoupon: null,
   deliveryLocation: null,
@@ -85,13 +88,19 @@ const getOptimisticPrices = (nextItems: CartItem[], state: CartState) => {
 
   const optimisticDelivery = optimisticTotal > 0 ? state.deliveryFee : 0;
   const optimisticDiscount = Math.min(state.discountAmount, optimisticTotal);
+  // Packaging is per unit, so scale the last known figure by the new quantity.
+  const prevUnits = state.items.reduce((n, i) => n + i.quantity, 0);
+  const nextUnits = nextItems.reduce((n, i) => n + i.quantity, 0);
+  const optimisticPackaging =
+    prevUnits > 0 ? (state.packagingTotal / prevUnits) * nextUnits : 0;
 
   return {
     totalPrice: optimisticTotal,
     tax: optimisticTax,
     deliveryFee: optimisticDelivery,
+    packagingTotal: optimisticPackaging,
     discountAmount: optimisticDiscount,
-    finalPrice: optimisticTotal + optimisticTax + optimisticDelivery - optimisticDiscount
+    finalPrice: optimisticTotal + optimisticTax + optimisticPackaging + optimisticDelivery - optimisticDiscount
   };
 };
 
@@ -168,9 +177,10 @@ export const useCartStore = create<CartState>()((set, get) => ({
         items: formattedItems,
         totalPrice: localTotal, // Use local total to match the recalculated prices
         discountAmount: bill.discount || 0,
-        finalPrice: bill.finalAmount || bill.finalTotal || (localTotal + (bill.taxAmount || bill.totalTax || 0) + (bill.shipping || 0) - (bill.discount || 0)),
+        finalPrice: bill.finalAmount || bill.finalTotal || (localTotal + (bill.taxAmount || bill.totalTax || 0) + (bill.packagingTotal || 0) + (bill.shipping || 0) - (bill.discount || 0)),
         deliveryFee: bill.shipping || 0,
         tax: bill.taxAmount || bill.totalTax || 0,
+        packagingTotal: bill.packagingTotal || 0,
         taxBreakdown: bill.taxBreakdown || { cgstTotal: 0, sgstTotal: 0, igstTotal: 0 },
         appliedCoupon: bill.appliedCoupon || data.appliedCoupon || null,
       });

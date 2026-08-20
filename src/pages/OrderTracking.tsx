@@ -917,6 +917,12 @@ const OrderTracking = () => {
                         <span>Subtotal</span>
                         <span>₹{Number(order.totalAmount || 0).toFixed(2)}</span>
                     </div>
+                    {order.packagingTotal > 0 && (
+                        <div className="flex justify-between text-sm">
+                            <span>Packaging Charge</span>
+                            <span>₹{order.packagingTotal}</span>
+                        </div>
+                    )}
                     {order.deliveryFee > 0 && (
                         <div className="flex justify-between text-muted-foreground">
                             <span>Delivery Fee</span>

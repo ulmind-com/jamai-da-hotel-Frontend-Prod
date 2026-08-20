@@ -26,7 +26,7 @@ const FREE_DELIVERY_THRESHOLD = 500;
 const CartDrawer = () => {
   const {
     items, isOpen, isLoading, toggleCart, incrementItem, decrementItem,
-    clearCart, totalPrice, discountAmount, finalPrice, deliveryFee, tax,
+    clearCart, totalPrice, discountAmount, finalPrice, deliveryFee, tax, packagingTotal,
     appliedCoupon,
   } = useCartStore();
   const { isAuthenticated, openAuthModal } = useAuthStore();
@@ -219,6 +219,12 @@ const CartDrawer = () => {
                       <span>GST & Taxes</span>
                       <span>₹{tax.toFixed(2)}</span>
                     </div>
+                    {packagingTotal > 0 && (
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Packaging Charge</span>
+                        <span>₹{packagingTotal.toFixed(2)}</span>
+                      </div>
+                    )}
                     {discountAmount > 0 && appliedCoupon && (
                       <div className="flex justify-between font-medium text-green-600">
                         <span>Coupon ({appliedCoupon.code})</span>

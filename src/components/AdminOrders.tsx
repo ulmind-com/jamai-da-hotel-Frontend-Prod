@@ -1006,6 +1006,9 @@ const AdminOrders = () => {
                   {selectedOrder.discountApplied > 0 && (
                     <div className="flex justify-between text-green-600"><span>Discount</span><span>-₹{Number(selectedOrder.discountApplied).toFixed(2)}</span></div>
                   )}
+                  {selectedOrder.packagingTotal > 0 && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Packaging Charge</span><span>₹{selectedOrder.packagingTotal}</span></div>
+                  )}
                   {selectedOrder.deliveryFee > 0 && (
                     <div className="flex justify-between"><span className="text-muted-foreground">Delivery Fee</span><span>₹{selectedOrder.deliveryFee}</span></div>
                   )}

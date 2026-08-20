@@ -35,6 +35,7 @@ const AddProductModal = ({ open, onClose }: AddProductModalProps) => {
     cgst: "",
     sgst: "",
     igst: "",
+    packagingCharge: "",
   });
 
   const { data: categories, isLoading: catLoading } = useQuery({
@@ -91,6 +92,7 @@ const AddProductModal = ({ open, onClose }: AddProductModalProps) => {
         cgst: Number((form as any).cgst || 0),
         sgst: Number((form as any).sgst || 0),
         igst: Number((form as any).igst || 0),
+        packagingCharge: Number((form as any).packagingCharge || 0),
       };
       await adminApi.addMenuItem(payload as any);
 
@@ -107,7 +109,10 @@ const AddProductModal = ({ open, onClose }: AddProductModalProps) => {
   };
 
   const resetForm = () => {
-    setForm({ name: "", description: "", category: "", type: "Veg", price: "", isAvailable: true });
+    setForm({
+      name: "", description: "", category: "", type: "Veg", price: "", isAvailable: true,
+      hsnCode: "", cgst: "", sgst: "", igst: "", packagingCharge: "",
+    });
     setImageFile(null);
     setImagePreview(null);
   };
@@ -254,6 +259,24 @@ const AddProductModal = ({ open, onClose }: AddProductModalProps) => {
                 step="0.01"
                 required
               />
+            </div>
+
+            <div>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Packaging Charge (₹)
+              </Label>
+              <Input
+                type="number"
+                value={(form as any).packagingCharge}
+                onChange={(e) => setForm({ ...form, packagingCharge: e.target.value } as any)}
+                placeholder="0"
+                className="mt-1.5"
+                min={0}
+                step="0.01"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Charged per piece on top of the price. No GST is applied to it.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

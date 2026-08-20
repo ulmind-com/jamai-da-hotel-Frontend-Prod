@@ -36,6 +36,7 @@ const EditProductModal = ({ open, onClose, item }: EditProductModalProps) => {
     cgst: "",
     sgst: "",
     igst: "",
+    packagingCharge: "",
   });
 
   const { data: categories } = useQuery({
@@ -58,6 +59,7 @@ const EditProductModal = ({ open, onClose, item }: EditProductModalProps) => {
         cgst: String(item.cgst || ""),
         sgst: String(item.sgst || ""),
         igst: String(item.igst || ""),
+        packagingCharge: String(item.packagingCharge || ""),
       });
       setImagePreview(resolveImageURL(item.image || item.imageURL));
       setImageFile(null);
@@ -92,6 +94,7 @@ const EditProductModal = ({ open, onClose, item }: EditProductModalProps) => {
         cgst: Number((form as any).cgst || 0),
         sgst: Number((form as any).sgst || 0),
         igst: Number((form as any).igst || 0),
+        packagingCharge: Number((form as any).packagingCharge || 0),
       });
       toast.success("Product updated! ✅");
       queryClient.invalidateQueries({ queryKey: ["admin-menu"] });
@@ -169,6 +172,24 @@ const EditProductModal = ({ open, onClose, item }: EditProductModalProps) => {
             <div>
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Price (₹) *</Label>
               <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="mt-1.5" min={0} step="0.01" required />
+            </div>
+
+            <div>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Packaging Charge (₹)
+              </Label>
+              <Input
+                type="number"
+                value={(form as any).packagingCharge}
+                onChange={(e) => setForm({ ...form, packagingCharge: e.target.value } as any)}
+                placeholder="0"
+                className="mt-1.5"
+                min={0}
+                step="0.01"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Charged per piece on delivery orders, and on POS only for parcels. No GST.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
