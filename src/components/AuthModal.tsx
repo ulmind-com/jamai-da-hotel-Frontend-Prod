@@ -82,7 +82,7 @@ const AuthModal = () => {
     setUser(userData);
     closeAuthModal();
     const role = userData.role;
-    if (["admin", "Admin", "manager", "Manager", "waiter", "Waiter"].includes(role)) navigate("/admin");
+    if (["admin", "Admin", "manager", "Manager", "delivery", "Delivery"].includes(role)) navigate("/admin");
     else navigate("/");
   };
 

@@ -30,7 +30,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
     if (status === 401) {
       // Only log out on a real session/token failure — NOT on a role
-      // authorization error (e.g. a Manager/Waiter hitting an admin-only route),
+      // authorization error (e.g. a Manager/Delivery hitting an admin-only route),
       // otherwise restricted roles get kicked out of the panel.
       const msg = (error.response?.data?.message || "").toLowerCase();
       const isSessionError = /no token|token failed|jwt|expired|not authorized, /.test(msg);
@@ -237,6 +237,14 @@ export const adminApi = {
   createPOSOrder: (data: { items: any[]; customerName?: string; customerMobile?: string; paymentMethod: string }) =>
     api.post("/admin/pos/create", data),
   getPOSOrders: (params?: any) => api.get("/admin/pos/orders", { params }),
+};
+
+// ─── Delivery (rider app) ───────────────────
+export const deliveryApi = {
+  getActiveOrders: () => api.get("/delivery/orders"),
+  getCompletedToday: () => api.get("/delivery/orders/completed"),
+  updateStatus: (id: string, data: { status: string; codCollected?: boolean }) =>
+    api.put(`/delivery/orders/${id}/status`, data),
 };
 
 // ─── Chat ────────────────────────────────────

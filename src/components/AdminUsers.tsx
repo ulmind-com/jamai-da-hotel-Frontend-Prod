@@ -179,7 +179,7 @@ const AdminUsers = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="Customer">Customer</SelectItem>
-                                <SelectItem value="Waiter">Waiter</SelectItem>
+                                <SelectItem value="Delivery">Delivery</SelectItem>
                                 <SelectItem value="Manager">Manager</SelectItem>
                                 <SelectItem value="Admin">Admin</SelectItem>
                               </SelectContent>
@@ -387,7 +387,7 @@ const AddStaffModal = ({ onClose, onSaved }: { onClose: () => void; onSaved: () 
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
             <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={inputClass}>
-              <option value="Waiter">Waiter (KOT only — take orders, generate KOT)</option>
+              <option value="Delivery">Delivery (delivery run only — call, navigate, mark delivered)</option>
               <option value="Manager">Manager (full access, some admin-only actions restricted)</option>
               <option value="Admin">Admin (full control)</option>
             </select>

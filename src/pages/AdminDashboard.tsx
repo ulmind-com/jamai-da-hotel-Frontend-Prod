@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, UtensilsCrossed, Layers, ClipboardList, BarChart3,
   DollarSign, ShoppingBag, TrendingUp, Package, Plus, Menu, X, Settings, Tag, Users,
-  PieChart as PieChartIcon, MessageSquare, Printer, Map as MapIcon, Film,
+  PieChart as PieChartIcon, MessageSquare, Printer, Map as MapIcon, Film, Bike,
 } from "lucide-react";
 import AdminMenuTable from "@/components/AdminMenuTable";
 import CategoryManager from "@/components/CategoryManager";
@@ -28,14 +28,16 @@ import SimplePos from "@/components/SimplePos";
 import PosReports from "@/components/PosReports";
 import PosDashboardSummary from "@/components/PosDashboardSummary";
 import AdminVlogs from "@/components/AdminVlogs";
+import DeliveryOrders from "@/components/DeliveryOrders";
 
-type AdminTab = "dashboard" | "menu" | "categories" | "orders" | "analytics" | "map" | "coupons" | "settings" | "users" | "reviews" | "chat" | "videos" | "billing" | "vlogs" | "reports";
+type AdminTab = "dashboard" | "menu" | "categories" | "orders" | "analytics" | "map" | "coupons" | "settings" | "users" | "reviews" | "chat" | "videos" | "billing" | "vlogs" | "reports" | "delivery";
 
-const VALID_TABS: AdminTab[] = ["dashboard", "menu", "categories", "orders", "analytics", "map", "coupons", "settings", "users", "reviews", "chat", "videos", "billing", "vlogs", "reports"];
+const VALID_TABS: AdminTab[] = ["dashboard", "menu", "categories", "orders", "analytics", "map", "coupons", "settings", "users", "reviews", "chat", "videos", "billing", "vlogs", "reports", "delivery"];
 
 const sidebarLinks: { key: AdminTab; label: string; icon: any }[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "billing", label: "POS Billing", icon: Printer },
+  { key: "delivery", label: "Delivery", icon: Bike },
   { key: "reports", label: "Reports", icon: BarChart3 },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "map", label: "Map Analytics", icon: MapIcon },
@@ -55,15 +57,15 @@ const sidebarLinks: { key: AdminTab; label: string; icon: any }[] = [
 
 // Tabs only an Admin may open (Managers get everything else).
 const ADMIN_ONLY_TABS: AdminTab[] = ["users"];
-// A Waiter is billing-only staff.
-const WAITER_TABS: AdminTab[] = ["billing"];
+// A Delivery rider only ever sees their delivery run.
+const DELIVERY_TABS: AdminTab[] = ["delivery"];
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
-  const { isAdmin, isWaiter } = useAuthStore();
-  const waiter = isWaiter();
+  const { isAdmin, isDelivery } = useAuthStore();
+  const rider = isDelivery();
   const visibleLinks = sidebarLinks.filter((l) =>
-    waiter ? WAITER_TABS.includes(l.key) : isAdmin() || !ADMIN_ONLY_TABS.includes(l.key)
+    rider ? DELIVERY_TABS.includes(l.key) : isAdmin() || !ADMIN_ONLY_TABS.includes(l.key)
   );
 
   // ── Global new-order notifier (works on ANY admin tab) ──
@@ -74,9 +76,9 @@ const AdminDashboard = () => {
   const handleIncomingOrderRef = useRef<(order: any) => void>(() => {});
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get("tab") as AdminTab | null;
-  // Waiters are locked to the billing terminal.
-  const activeTab: AdminTab = waiter
-    ? "billing"
+  // Riders are locked to the delivery screen.
+  const activeTab: AdminTab = rider
+    ? "delivery"
     : tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : "dashboard";
 
   // Fetch admin chats to calculate unread badge
@@ -90,7 +92,7 @@ const AdminDashboard = () => {
 
   // Global socket listeners — orders + chat (from any admin section)
   useEffect(() => {
-    if (waiter) return; // waiters don't handle orders/chat
+    if (rider) return; // riders don't handle orders/chat
     // JOIN the admin room so this socket receives chatMessage events
     socket.emit("joinAdminChat");
 
@@ -122,7 +124,7 @@ const AdminDashboard = () => {
       socket.off("newOrder");
       socket.off("chatMessage");
     };
-  }, [queryClient, waiter]);
+  }, [queryClient, rider]);
 
 
   const setActiveTab = (tab: AdminTab) => {
@@ -148,7 +150,7 @@ const AdminDashboard = () => {
     // dropped the broadcast — keeps the chime + popup reliable everywhere.
     refetchInterval: 20000,
     refetchIntervalInBackground: true,
-    enabled: !waiter, // waiters don't get the order dashboard
+    enabled: !rider, // riders don't get the order dashboard
   });
 
   // Keep the notifier closure fresh (latest setActiveTab) without re-running effects.
@@ -284,6 +286,8 @@ const AdminDashboard = () => {
         return <HeroVideoManager />;
       case "billing":
         return <SimplePos />;
+      case "delivery":
+        return <DeliveryOrders />;
       case "reports":
         return <PosReports />;
       case "vlogs":
