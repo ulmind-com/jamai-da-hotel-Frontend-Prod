@@ -6,7 +6,7 @@ import LoadMore from "@/components/LoadMore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, Minus, Trash2, Printer, Receipt, ChefHat,
-  Percent, Tag, Bluetooth, BluetoothConnected, ChevronDown, Check,
+  Percent, Tag, Bluetooth, BluetoothConnected, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -41,8 +41,7 @@ export default function SimplePos() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerMobile, setCustomerMobile] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const [showDiscount, setShowDiscount] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
   const [discountType, setDiscountType] = useState<"FLAT" | "PERCENTAGE">("FLAT");
   const [discountValue, setDiscountValue] = useState("");
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
@@ -252,9 +251,8 @@ export default function SimplePos() {
       setCart([]);
       setCustomerName("");
       setCustomerMobile("");
-      setPaymentMethod("");
+      setPaymentMethod("CASH");
       setDiscountValue("");
-      setShowDiscount(false);
       setIsMobileCartOpen(false);
       queryClient.invalidateQueries({ queryKey: ["admin-pos-orders"] });
     },
@@ -262,10 +260,9 @@ export default function SimplePos() {
       toast.error(err.response?.data?.message || "Failed to generate bill"),
   });
 
+  // Only the cart is required — name, phone, payment and discount are all optional.
   const handleGenerateBill = () => {
     if (cart.length === 0) return toast.error("Add at least one item");
-    if (!customerName.trim()) return toast.error("Enter the customer name");
-    if (!paymentMethod) return toast.error("Select a payment method");
 
     createBill.mutate({
       customerName: customerName.trim(),
@@ -277,7 +274,7 @@ export default function SimplePos() {
     } as any);
   };
 
-  const canGenerate = cart.length > 0 && customerName.trim() !== "" && paymentMethod !== "";
+  const canGenerate = cart.length > 0;
 
   return (
     <div className="relative flex h-[calc(100vh-7rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-border bg-background lg:flex-row">
@@ -487,14 +484,14 @@ export default function SimplePos() {
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
-                  placeholder="Customer name *"
+                  placeholder="Customer name"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <input
                   type="tel"
-                  placeholder="Phone (optional)"
+                  placeholder="Phone"
                   value={customerMobile}
                   onChange={(e) => setCustomerMobile(e.target.value)}
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
@@ -502,7 +499,7 @@ export default function SimplePos() {
               </div>
 
               <div>
-                <p className="mb-1.5 text-xs font-bold text-muted-foreground">PAYMENT METHOD *</p>
+                <p className="mb-1.5 text-xs font-bold text-muted-foreground">PAYMENT METHOD</p>
                 <div className="flex gap-2">
                   {PAYMENT_METHODS.map((method) => (
                     <button
@@ -520,52 +517,42 @@ export default function SimplePos() {
                 </div>
               </div>
 
-              {/* Discount stays tucked away until it's actually needed. */}
               <div>
-                <button
-                  onClick={() => setShowDiscount((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-lg px-1 py-1 text-xs font-bold text-muted-foreground hover:text-foreground"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Tag className="h-3.5 w-3.5 text-green-600" />
-                    Discount {discountAmount > 0 && (
-                      <span className="text-green-600">(−₹{discountAmount.toFixed(2)})</span>
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${showDiscount ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {showDiscount && (
-                  <div className="mt-2 flex gap-2">
-                    <div className="flex flex-shrink-0 rounded-lg bg-muted p-0.5">
-                      <button
-                        onClick={() => setDiscountType("FLAT")}
-                        className={`rounded-md px-3 py-1.5 text-xs font-bold ${
-                          discountType === "FLAT" ? "bg-background shadow" : "text-muted-foreground"
-                        }`}
-                      >
-                        ₹
-                      </button>
-                      <button
-                        onClick={() => setDiscountType("PERCENTAGE")}
-                        className={`rounded-md px-3 py-1.5 text-xs font-bold ${
-                          discountType === "PERCENTAGE" ? "bg-background shadow" : "text-muted-foreground"
-                        }`}
-                      >
-                        <Percent className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder={discountType === "FLAT" ? "Amount" : "Percent"}
-                      value={discountValue}
-                      onChange={(e) => setDiscountValue(e.target.value)}
-                      className="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                    />
+                <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                  <Tag className="h-3.5 w-3.5 text-green-600" />
+                  DISCOUNT
+                  {discountAmount > 0 && (
+                    <span className="text-green-600">−₹{discountAmount.toFixed(2)}</span>
+                  )}
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex flex-shrink-0 rounded-lg bg-muted p-0.5">
+                    <button
+                      onClick={() => setDiscountType("FLAT")}
+                      className={`rounded-md px-3 py-1.5 text-xs font-bold ${
+                        discountType === "FLAT" ? "bg-background shadow" : "text-muted-foreground"
+                      }`}
+                    >
+                      ₹
+                    </button>
+                    <button
+                      onClick={() => setDiscountType("PERCENTAGE")}
+                      className={`rounded-md px-3 py-1.5 text-xs font-bold ${
+                        discountType === "PERCENTAGE" ? "bg-background shadow" : "text-muted-foreground"
+                      }`}
+                    >
+                      <Percent className="h-3 w-3" />
+                    </button>
                   </div>
-                )}
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder={discountType === "FLAT" ? "Amount" : "Percent"}
+                    value={discountValue}
+                    onChange={(e) => setDiscountValue(e.target.value)}
+                    className="flex-1 rounded-lg border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1 border-t border-border/50 pt-2 text-sm">
